@@ -55,6 +55,9 @@ account required pam_time.so
 
 ![Image alt](https://github.com/Edo1993/otus_14/raw/master/Screenshot_71.png)
 
+Проверяем попутки успешных входов ```last```
+![Image alt](https://github.com/Edo1993/otus_14/raw/master/Screenshot_75.png)
+
 После этого захотелось проверить, что для пользователя friday всё работает корректно. Изменила в ```/etc/security/time.conf``` для пользователя friday день на субботу Sa:
 
 ![Image alt](https://github.com/Edo1993/otus_14/raw/master/Screenshot_72.png)
@@ -63,4 +66,6 @@ account required pam_time.so
 
 ![Image alt](https://github.com/Edo1993/otus_14/raw/master/Screenshot_73.png)
 
-Проверяем попутки успешных входов ```last``` 
+Проверяем попутки Неуспешных входов ```lastb```
+
+![Image alt](https://github.com/Edo1993/otus_14/raw/master/Screenshot_75_1.png)
