@@ -107,3 +107,4 @@ chmod 777 test_login.sh
 ![Image alt](https://github.com/Edo1993/otus_14/raw/master/22.png)
 
 # Модуль pam_script
+
