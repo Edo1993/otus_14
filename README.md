@@ -14,45 +14,57 @@
 
 - Пользователь dockerUser может выполнять команду ```systemctl restart docker```, проверить, что докер перезапущен ``` systemctl status docker```
 
-На стендовой виртуальной машине создадим 2х пользователей:
+
+
+Описание работы.
+
+*Запретить всем пользователям, кроме группы admin логин в выходные (суббота и воскресенье), без учета праздников*
+Реализовано через ```pam_script```.
+Установлены epel-release + pam_script
 ```
-sudo useradd bun && \
-sudo useradd cookie
+yum install epel-release -y
+yum install pam_script -y
 ```
-Назначим им пароли:
+Добавляем в ```/etc/pam.d/sshd``` соответствующую запись ```auth  required  pam_script.so```.
+Сам скрипт скопировали из текущей директории на vm и выдали права на выполнение
 ```
-echo "Otus2019"|sudo passwd --stdin bun &&\
-echo "Otus2019" | sudo passwd --stdin cookie
+chmod +x /vagrant/pam_script
+cp /vagrant/pam_script /etc/
+```
+Создаём группу *admin*, создаём булочку и сразу добавляем её в админы при создании, задаём пароль.
+```
+groupadd admin
+useradd -G admin bun
+echo "bun:Otus2019" | chpasswd
+```
+Создаём печеньку, задаём пароль.
+```
+useradd cookie
+echo "cookie:Otus2019" | chpasswd
 ```
 Чтобы быть уверенными, что на стенде разрешен вход через ssh по паролю выполним:
 ```
-sudo bash -c "sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config && systemctl restart sshd.service"
+bash -c "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config"
 ```
-Добавим группу admin
+Перезапускаем сервис ```systemctl restart sshd``` - можно проверять
+
+*дать конкретному пользователю права работать с докером и возможность рестартить докер сервис*
+
+Создаём пользователя, задаём пароль. Группа ```docker``` создаётся в процессе установки docker'а, поэтому её отдельно не задаю.
 ```
-sudo groupadd admin
+useradd dockerUser
+echo "dockerUser:Otus2019" | chpasswd
 ```
-Добавим пользователя bun в группу admin 
+Манипуляции для установки docker'а:
 ```
-sudo usermod -G admin bun
+yum check-update
+curl -fsSL https://get.docker.com/ | sh
+systemctl start docker
+```
+Пользователя dockerUser добавляем в группу docker'а + даём ему админские права для возможности рестарта сервиса.
+```
+usermod -aG docker dockerUser
+usermod -G wheel dockerUser
 ```
 
-# Модуль pam_time
-
-Модуль pam_time позволяет достаточно гибко настроить доступ пользователя с учетом времени. Настройки данного модуля хранятся в файле /etc/security/time.conf.
-```
-cd /etc/security/
-sudo vi time.conf
-```
-Добавим в конец файла строку
-```
-*;*;!%admin;!SaSu
-```
-Теперь настроим PAM, так как по-умолчанию данный модуль не подключен.
-Для этого приведем файл ```/etc/pam.d/sshd``` к виду:
-```
-...
-account required pam_nologin.so
-account required pam_time.so
-...
-```
+Перезапускаем docker ```systemctl restart docker```.
