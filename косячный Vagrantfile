@@ -1,0 +1,44 @@
+# -*- mode: ruby -*- /etc/security/ti
+# vim: set ft=ruby :
+
+MACHINES = {
+  :otusPam => {
+        :box_name => "centos/7",
+        :ip_addr => '192.168.11.151'
+  }
+}
+
+Vagrant.configure("2") do |config|
+
+  MACHINES.each do |boxname, boxconfig|
+
+      config.vm.define boxname do |box|
+
+          box.vm.box = boxconfig[:box_name]
+          box.vm.host_name = boxname.to_s
+
+          box.vm.network "private_network", ip: boxconfig[:ip_addr]
+
+          box.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "512"]
+          end
+          
+          box.vm.provision "shell", inline: <<-SHELL
+            mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+            groupadd admin_group
+            useradd bun
+            useradd cookie
+            echo "bun:Otus2019" | chpasswd
+            echo "cookie:Otus2019" | chpasswd
+            usermod -a -G admin_group bun
+            bash -c "sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config && systemctl restart sshd.service"
+            sed -i '6i\ account    required     pam_time.so' /etc/pam.d/login
+            sed -i '7i\ account    required     pam_time.so' /etc/pam.d/sshd
+            sed -i '64i\ login;*; !admin_group ;!Wd' /etc/security/time.conf
+            sed -i '65i\ sshd;*; !admin_group ;!Wd' /etc/security/time.conf
+            systemctl restart sshd.service
+          SHELL
+
+      end
+  end
+end	
