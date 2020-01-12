@@ -9,6 +9,11 @@
 
 [Vagrantfile + скрипт](https://github.com/Edo1993/otus_14/tree/master/homework) 
 
+Проверить выполнение дз:
+- в выходные должно пускать под булочкой (bun), под печенькой (cookie) не пустит.
+
+- Пользователь dockerUser может выполнять команду ```systemctl restart docker```, проверить, что докер перезапущен ``` systemctl status docker```
+
 На стендовой виртуальной машине создадим 2х пользователей:
 ```
 sudo useradd bun && \
