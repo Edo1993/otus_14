@@ -12,7 +12,7 @@
 Проверить выполнение дз:
 - в выходные должно пускать под bun, под cookie не пустит.
 
-- Пользователь dockerUser может выполнять команду ```systemctl restart docker```, проверить, что докер перезапущен ``` systemctl status docker```
+- Пользователь dockerUser может выполнять команду ```sudo systemctl restart docker```, проверить, что докер перезапущен ``` systemctl status docker```
 
 
 
@@ -65,10 +65,20 @@ yum check-update
 curl -fsSL https://get.docker.com/ | sh
 systemctl start docker
 ```
-Пользователя dockerUser добавляем в группу docker'а + даём ему админские права для возможности рестарта сервиса.
+Пользователя dockerUser добавляем в группу docker'а + даём ему права для возможности рестарта сервиса путём редактирования /etc/sudoers через ```visudo```.
 ```
 usermod -aG docker dockerUser
-usermod -G wheel dockerUser
+sudo visudo
+```
+В открывшийся файл для редактирования (а открыться должен ```/etc/sudoers```) в конец вставить строку 
+```
+%dockerUser ALL=NOPASSWD: /bin/systemctl restart docker.service
+```
+Затем выполнить
+```
+chmod 0440 /etc/sudoers.d/vagrant
 ```
 
 Перезапускаем docker ```systemctl restart docker```.
+
+Проверить 
